@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS55 Chapter 9 Quiz</title>
+<style>
+  :root {
+    --user-primary: #1a4480;
+    --user-accent: #c8102e;
+    --user-background: #ffffff;
+
+    --ink: #1b1f24;
+    --muted: #5a6472;
+    --line: #d9dee5;
+    --soft: #f3f6fa;
+    --primary-soft: #e8eef7;
+    --ok: #1d7a3e;
+    --ok-soft: #e6f4ea;
+    --bad: var(--user-accent);
+    --bad-soft: #fbe9ec;
+    --flag: #b26a00;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 4px 14px rgba(16,24,40,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--user-background);
+    color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  math { font-size: 1.08em; math-style: normal; }
+  math mfrac { padding: 0 .1em; }
+  button { font: inherit; cursor: pointer; }
+  .hidden { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* Header */
+  header.top {
+    background: var(--user-primary);
+    color: #fff;
+    border-bottom: 4px solid var(--user-accent);
+  }
+  .top-inner { max-width: 1120px; margin: 0 auto; padding: 18px 20px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .brand small { display: block; opacity: .85; font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; }
+  .brand h1 { margin: 2px 0 0; font-size: 1.35rem; font-weight: 650; }
+  .stats { display: flex; gap: 18px; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .stats span b { font-weight: 650; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 20px 48px; }
+
+  /* Cards & buttons */
+  .card { background: var(--user-background); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .btn { border: 1px solid var(--line); background: var(--user-background); color: var(--ink); padding: 9px 16px; border-radius: 8px; font-weight: 550; }
+  .btn:hover { background: var(--soft); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.primary { background: var(--user-primary); border-color: var(--user-primary); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn.accent { background: var(--user-accent); border-color: var(--user-accent); color: #fff; }
+  .btn.accent:hover { filter: brightness(1.08); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--user-primary); }
+  .btn.ghost:hover { background: var(--primary-soft); }
+  :focus-visible { outline: 3px solid var(--user-primary); outline-offset: 2px; }
+
+  /* Start screen */
+  .start { max-width: 680px; margin: 12px auto; padding: 28px; }
+  .start h2 { margin: 0 0 6px; color: var(--user-primary); font-size: 1.5rem; }
+  .start p.lead { margin: 0 0 22px; color: var(--muted); }
+  .opt-group { border: 0; padding: 0; margin: 0 0 20px; }
+  .opt-group legend { font-weight: 650; margin-bottom: 8px; }
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mode-card { display: block; border: 2px solid var(--line); border-radius: var(--radius); padding: 14px; cursor: pointer; }
+  .mode-card input { margin-right: 6px; accent-color: var(--user-primary); }
+  .mode-card b { color: var(--ink); }
+  .mode-card span { display: block; color: var(--muted); font-size: .9rem; margin-top: 4px; }
+  .mode-card:has(input:checked) { border-color: var(--user-primary); background: var(--primary-soft); }
+  .checks label { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+  .checks input { accent-color: var(--user-primary); width: 18px; height: 18px; }
+  .resume { margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: var(--soft); display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; font-size: .95rem; }
+  .start-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .kbd-hint { margin-top: 18px; font-size: .85rem; color: var(--muted); }
+  kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: .8rem; background: var(--soft); }
+
+  /* Quiz layout */
+  .quiz { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
+  .progress { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--line); }
+  .progress > div { height: 100%; width: 0; background: var(--user-primary); transition: width .25s ease; }
+  .qcard { padding: 24px 26px; }
+  .qhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .qnum { font-size: .85rem; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--user-primary); }
+  .flag-btn { border: 1px solid var(--line); background: var(--user-background); border-radius: 99px; padding: 4px 12px; font-size: .85rem; color: var(--muted); }
+  .flag-btn[aria-pressed="true"] { border-color: var(--flag); color: var(--flag); background: #fff6e8; }
+  .qtext { font-size: 1.1rem; margin: 0 0 18px; }
+  .choices { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .choice {
+    width: 100%; text-align: left; display: flex; gap: 14px; align-items: center;
+    padding: 12px 14px; border: 2px solid var(--line); border-radius: var(--radius);
+    background: var(--user-background); color: var(--ink); transition: border-color .12s, background .12s;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--user-primary); background: var(--primary-soft); }
+  .choice .letter {
+    flex: 0 0 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--line); font-weight: 650; color: var(--muted); background: var(--user-background);
+  }
+  .choice .body { flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  .choice .mark { font-weight: 650; font-size: .85rem; white-space: nowrap; }
+  .choice.selected { border-color: var(--user-primary); background: var(--primary-soft); }
+  .choice.selected .letter { background: var(--user-primary); border-color: var(--user-primary); color: #fff; }
+  .choice.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .choice.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .choice.correct .mark { color: var(--ok); }
+  .choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .choice.wrong .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .choice.wrong .mark { color: var(--bad); }
+  .choice:disabled { cursor: default; }
+  .feedback { margin-top: 16px; padding: 12px 14px; border-radius: 8px; font-weight: 550; }
+  .feedback.ok { background: var(--ok-soft); color: var(--ok); border-left: 4px solid var(--ok); }
+  .feedback.bad { background: var(--bad-soft); color: var(--bad); border-left: 4px solid var(--bad); }
+  .qnav { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .qnav .right { display: flex; gap: 10px; }
+
+  /* Sidebar */
+  .side { padding: 18px; position: sticky; top: 16px; }
+  .side h3 { margin: 0 0 10px; font-size: .95rem; }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .cell {
+    aspect-ratio: 1; border: 1px solid var(--line); border-radius: 6px; background: var(--user-background);
+    font-size: .8rem; font-weight: 600; color: var(--muted); padding: 0; position: relative; font-variant-numeric: tabular-nums;
+  }
+  .cell:hover { border-color: var(--user-primary); }
+  .cell.answered { background: var(--primary-soft); color: var(--user-primary); border-color: #b9c8e0; }
+  .cell.correct { background: var(--ok-soft); color: var(--ok); border-color: #a9d6b7; }
+  .cell.wrong { background: var(--bad-soft); color: var(--bad); border-color: #efb3bd; }
+  .cell.current { outline: 2px solid var(--user-primary); outline-offset: 1px; }
+  .cell.flagged::after { content: ""; position: absolute; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--flag); }
+  .legend { display: grid; gap: 4px; margin: 14px 0; font-size: .8rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
+  .side .btn { width: 100%; margin-top: 6px; }
+
+  /* Results */
+  .results-top { padding: 26px; display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center; margin-bottom: 20px; }
+  .ring { --p: 0; width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center;
+    background: conic-gradient(var(--user-primary) calc(var(--p) * 1%), var(--soft) 0); }
+  .ring > div { width: 110px; height: 110px; border-radius: 50%; background: var(--user-background); display: grid; place-items: center; text-align: center; }
+  .ring b { font-size: 1.9rem; line-height: 1; color: var(--user-primary); font-variant-numeric: tabular-nums; }
+  .ring small { color: var(--muted); font-size: .8rem; }
+  .results-top h2 { margin: 0 0 4px; color: var(--user-primary); }
+  .results-top p { margin: 0 0 14px; color: var(--muted); }
+  .kpis { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
+  .kpis div b { display: block; font-size: 1.3rem; }
+  .kpis div span { font-size: .82rem; color: var(--muted); }
+  .res-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .filters { display: flex; gap: 6px; margin: 0 0 12px; flex-wrap: wrap; }
+  .filters button { border: 1px solid var(--line); background: var(--user-background); padding: 5px 12px; border-radius: 99px; font-size: .88rem; }
+  .filters button[aria-pressed="true"] { background: var(--user-primary); color: #fff; border-color: var(--user-primary); }
+  .review { display: grid; gap: 12px; }
+  .ritem { padding: 16px 18px; border-left: 5px solid var(--line); }
+  .ritem.ok { border-left-color: var(--ok); }
+  .ritem.bad { border-left-color: var(--bad); }
+  .ritem .rh { display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; font-weight: 650; margin-bottom: 6px; }
+  .ritem .rh .tag.ok { color: var(--ok); }
+  .ritem .rh .tag.bad { color: var(--bad); }
+  .ritem .rq { margin: 0 0 10px; }
+  .ritem ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .ritem li { padding: 6px 10px; border-radius: 6px; display: flex; gap: 10px; align-items: baseline; overflow-x: auto; overflow-y: hidden; }
+  .ritem li.c { background: var(--ok-soft); }
+  .ritem li.w { background: var(--bad-soft); }
+  .ritem li .l { font-weight: 650; min-width: 1.4em; }
+  .ritem li .t { margin-left: auto; font-size: .8rem; font-weight: 650; white-space: nowrap; }
+  .ritem li.c .t { color: var(--ok); }
+  .ritem li.w .t { color: var(--bad); }
+
+  footer { text-align: center; font-size: .8rem; color: var(--muted); padding: 0 20px 28px; }
+
+  @media (max-width: 860px) {
+    .quiz { grid-template-columns: 1fr; }
+    .side { position: static; }
+    .grid { grid-template-columns: repeat(10, 1fr); }
+  }
+  @media (max-width: 560px) {
+    main { padding: 16px 16px 40px; }
+    .top-inner { padding: 14px 16px; }
+    .mode-cards { grid-template-columns: 1fr; }
+    .qcard { padding: 18px 16px; }
+    .grid { grid-template-columns: repeat(7, 1fr); }
+    .results-top { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .kpis, .res-actions { justify-content: center; }
+    .start { padding: 20px 16px; }
+  }
+  @media print {
+    header.top { background: none; color: var(--ink); border-bottom: 2px solid var(--ink); }
+    .side, .qnav, .res-actions, .filters, footer { display: none !important; }
+    .card { box-shadow: none; }
+    .ritem { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <small>San Joaquin Delta College &middot; CS55 Discrete Structures for Computer Science</small>
+      <h1>Chapter 9 Interactive Quiz: Counting</h1>
+    </div>
+    <div class="stats hidden" id="stats" aria-live="polite">
+      <span>Answered <b id="statAnswered">0</b>/<b id="statTotal">0</b></span>
+      <span id="statScoreWrap" class="hidden">Correct <b id="statScore">0</b></span>
+      <span>Time <b id="statTime">0:00</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- START -->
+  <section id="startView" class="card start">
+    <h2>Ready to practice?</h2>
+    <p class="lead"><span id="qCount"></span> multiple-choice questions on the sum and product rules, bijections, permutations, combinations, and counting by complement.</p>
+
+    <fieldset class="opt-group">
+      <legend>Mode</legend>
+      <div class="mode-cards">
+        <label class="mode-card"><input type="radio" name="mode" value="practice" checked><b>Practice</b><span>Pick an answer, then press <b>Check answer</b> to see whether it is right.</span></label>
+        <label class="mode-card"><input type="radio" name="mode" value="test"><b>Test</b><span>Answer everything first, then get your score and a full review.</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="opt-group checks">
+      <legend>Options</legend>
+      <label><input type="checkbox" id="optShuffleQ"> Shuffle question order</label>
+      <label><input type="checkbox" id="optShuffleA"> Shuffle answer choices</label>
+    </fieldset>
+
+    <div class="start-actions">
+      <button class="btn primary" id="btnStart">Start quiz</button>
+    </div>
+    <div class="resume hidden" id="resumeBox">
+      <span id="resumeText"></span>
+      <span style="display:flex;gap:8px">
+        <button class="btn" id="btnDiscard">Discard</button>
+        <button class="btn primary" id="btnResume">Resume</button>
+      </span>
+    </div>
+    <p class="kbd-hint">Keyboard: <kbd>A</kbd>–<kbd>D</kbd> or <kbd>1</kbd>–<kbd>4</kbd> to choose, <kbd>&larr;</kbd> <kbd>&rarr;</kbd> to move, <kbd>Enter</kbd> to check (Practice), <kbd>F</kbd> to flag.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quizView" class="quiz hidden">
+    <div>
+      <div class="progress" role="progressbar" aria-label="Questions answered" aria-valuemin="0" id="progress"><div id="progressBar"></div></div>
+      <article class="card qcard" aria-live="polite">
+        <div class="qhead">
+          <span class="qnum" id="qNum"></span>
+          <button class="flag-btn" id="btnFlag" aria-pressed="false">&#9873; Flag for review</button>
+        </div>
+        <div class="qtext" id="qText"></div>
+        <ol class="choices" id="choices"></ol>
+        <div id="feedback" class="feedback hidden" role="status"></div>
+        <div class="qnav">
+          <button class="btn" id="btnPrev">&larr; Previous</button>
+          <div class="right">
+            <button class="btn accent" id="btnCheck">Check answer</button>
+            <button class="btn primary" id="btnNext">Next &rarr;</button>
+          </div>
+        </div>
+      </article>
+    </div>
+    <aside class="card side">
+      <h3>Questions</h3>
+      <div class="grid" id="navGrid"></div>
+      <div class="legend" id="legend"></div>
+      <button class="btn accent" id="btnSubmit">Submit quiz</button>
+      <button class="btn ghost" id="btnQuit">Quit to start</button>
+    </aside>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="resultsView" class="hidden">
+    <div class="card results-top">
+      <div class="ring" id="ring"><div><span><b id="resPct">0%</b><br><small>score</small></span></div></div>
+      <div>
+        <h2 id="resTitle"></h2>
+        <p id="resMsg"></p>
+        <div class="kpis">
+          <div><b id="kCorrect">0</b><span>correct</span></div>
+          <div><b id="kWrong">0</b><span>incorrect</span></div>
+          <div><b id="kSkipped">0</b><span>unanswered</span></div>
+          <div><b id="kTime">0:00</b><span>time</span></div>
+        </div>
+        <div class="res-actions">
+          <button class="btn primary" id="btnRetryMissed">Retry missed questions</button>
+          <button class="btn" id="btnRestart">Start over</button>
+          <button class="btn ghost" id="btnPrint">Print results</button>
+        </div>
+      </div>
+    </div>
+    <div class="filters" role="group" aria-label="Filter review">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="bad" aria-pressed="false">Incorrect / unanswered</button>
+      <button data-f="ok" aria-pressed="false">Correct</button>
+      <button data-f="flag" aria-pressed="false">Flagged</button>
+    </div>
+    <div class="review" id="review"></div>
+  </section>
+</main>
+<footer>CS55 &middot; Discrete Structures for Computer Science &middot; San Joaquin Delta College</footer>
+
+<script>
+const QUESTIONS = [
+ {
+  "q": "How many <math><mn>10<\/mn><\/math>-bit strings begin with &quot;<math><mn>101<\/mn><\/math>&quot; or &quot;<math><mn>00<\/mn><\/math>&quot;?",
+  "o": [
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "A bank PIN is a string of four digits, each digit <math><mn>0<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>. How many choices are there for a PIN if the last digit must be odd?",
+  "o": [
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>5<\/mn><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>5<\/mn><mo>⋅<\/mo><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "To select a stir-fry dish, a restaurant customer must select a type of rice, protein, and sauce. Two types of rices, three proteins, and seven sauces are availble. How many different kinds of stir-fry dishes are available?",
+  "o": [
+   "<math><mn>2<\/mn><mo>+<\/mo><mn>3<\/mn><mo>⋅<\/mo><mn>7<\/mn><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>3<\/mn><mo>⋅<\/mo><mn>7<\/mn><\/math>",
+   "<math><mn>2<\/mn><mo>+<\/mo><mn>3<\/mn><mo>+<\/mo><mn>7<\/mn><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><mo>⋅<\/mo><mn>7<\/mn><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "How many strings are there over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>}<\/mo><\/math> that begin with the letter b and have length <math><mn>7<\/mn><\/math> or <math><mn>8<\/mn><\/math>?",
+  "o": [
+   "<math><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><mo>+<\/mo><mn>2<\/mn><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "How many strings are there over the alphabet <math><mo>{<\/mo><mn>0,1<\/mn><mo>,<\/mo><mn>2,3<\/mn><mo>}<\/mo><\/math> with a length of at least <math><mn>8<\/mn><\/math> and at most <math><mn>11<\/mn><\/math>?",
+  "o": [
+   "<math><msup><mrow><mn>8<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>11<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>8<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>11<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>8<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "A lunch special at the local diner comes with a choice of beverage, choice of sandwich, and choice of side. There are four different beverages, seven different sandwiches, and three different sides. How many different choices are there for a lunch special?",
+  "o": [
+   "<math><mn>4<\/mn><mo>+<\/mo><mn>7<\/mn><mo>+<\/mo><mn>3<\/mn><\/math>",
+   "<math><mn>4<\/mn><mo>⋅<\/mo><mn>7<\/mn><mo>⋅<\/mo><mn>3<\/mn><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>+<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mo>(<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>)<\/mo><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "Sameer is planning a workout schedule for the month of January. January has <math><mn>31<\/mn><\/math> days. On each day in January Sameer will either swim, run, or bike. That is, on each day, Sameer does exactly one of the three possible activities.<br>How many different workout schedules does Sameer have for the month of January?",
+  "o": [
+   "<math><mn>3<\/mn><mo>⋅<\/mo><mn>31<\/mn><\/math>",
+   "<math><mn>3<\/mn><mo>+<\/mo><mn>31<\/mn><\/math>",
+   "<math><msup><mrow><mn>31<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>31<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "A lunch special at the local diner comes with a choice of beverage, choice of sandwich, and choice of side. There are four different beverages, seven different sandwiches, and three different sides. Two of the sandwiches can be ordered toasted or cold. The other five sandwiches are always served cold. How many different choices are there for a lunch special?",
+  "o": [
+   "<math><mn>4<\/mn><mo>+<\/mo><mo>(<\/mo><mn>2<\/mn><mo>⋅<\/mo><mn>2<\/mn><mo>+<\/mo><mn>5<\/mn><mo>)<\/mo><mo>+<\/mo><mn>3<\/mn><\/math>",
+   "<math><mn>4<\/mn><mo>+<\/mo><mo>(<\/mo><mn>2<\/mn><mo>⋅<\/mo><mn>2<\/mn><mo>+<\/mo><mn>7<\/mn><mo>)<\/mo><mo>+<\/mo><mn>3<\/mn><\/math>",
+   "<math><mn>4<\/mn><mo>⋅<\/mo><mo>(<\/mo><mn>2<\/mn><mo>⋅<\/mo><mn>2<\/mn><mo>+<\/mo><mn>5<\/mn><mo>)<\/mo><mo>⋅<\/mo><mn>3<\/mn><\/math>",
+   "<math><mn>4<\/mn><mo>⋅<\/mo><mo>(<\/mo><mn>2<\/mn><mo>⋅<\/mo><mn>2<\/mn><mo>+<\/mo><mn>7<\/mn><mo>)<\/mo><mo>⋅<\/mo><mn>3<\/mn><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "Suppose <math><mi>S<\/mi><\/math> and <math><mi>T<\/mi><\/math> are finite sets and there is a function <math><mi>f<\/mi><mo>:<\/mo><mi>S<\/mi><mo>→<\/mo><mi>T<\/mi><\/math> such that <math><mi>f<\/mi><\/math> is a <math><mi>k<\/mi><\/math>-to-<math><mn>1<\/mn><\/math> correspondence. What can be inferred about the cardinality of <math><mi>S<\/mi><\/math> and <math><mi>T<\/mi><\/math>?",
+  "o": [
+   "<math><mo>|<\/mo><mi>S<\/mi><mo>|<\/mo><mo>≤<\/mo><mo>|<\/mo><mi>T<\/mi><mo>|<\/mo><\/math>",
+   "<math><mo>|<\/mo><mi>T<\/mi><mo>|<\/mo><mo>=<\/mo><mo>|<\/mo><mi>S<\/mi><mo>|<\/mo><\/math>",
+   "<math><mo>|<\/mo><mi>S<\/mi><mo>|<\/mo><mo>=<\/mo><mfrac><mrow><mo>|<\/mo><mi>T<\/mi><mo>|<\/mo><\/mrow><mrow><mi>k<\/mi><\/mrow><\/mfrac><\/math>",
+   "<math><mo>|<\/mo><mi>T<\/mi><mo>|<\/mo><mo>=<\/mo><mfrac><mrow><mo>|<\/mo><mi>S<\/mi><mo>|<\/mo><\/mrow><mrow><mi>k<\/mi><\/mrow><\/mfrac><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "<math><mi>S<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>,<\/mo><mi>g<\/mi><mo>}<\/mo><\/math>. The power set of <math><mi>S<\/mi><\/math> (denoted <math><mi>P<\/mi><mo>(<\/mo><mi>S<\/mi><mo>)<\/mo><\/math>) is the set of all subsets of <math><mi>S<\/mi><\/math>. What is <math><mo>|<\/mo><mi>P<\/mi><mo>(<\/mo><mi>S<\/mi><mo>)<\/mo><mo>|<\/mo><\/math>?",
+  "o": [
+   "<math><mn>7<\/mn><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>7<\/mn><mo>!<\/mo><\/math>",
+   "<math><msup><mrow><mn>7<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "<math><mi>f<\/mi><\/math> is a function that maps <math><mn>6<\/mn><\/math>-bit binary strings to <math><mn>4<\/mn><\/math>-bit binary strings. For <math><mi>x<\/mi><mo>∈<\/mo><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><\/math>, <math><mi>f<\/mi><mo>(<\/mo><mi>x<\/mi><mo>)<\/mo><\/math> is the string <math><mi>x<\/mi><\/math> with the last two bits removed. Which property best describes the function <math><mi>f<\/mi><\/math>?",
+  "o": [
+   "Bijection",
+   "<math><mn>2<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>4<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>16<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence"
+  ],
+  "k": 1
+ },
+ {
+  "q": "<math><mi>f<\/mi><\/math> is a <math><mn>3<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence from the domain <math><mi>A<\/mi><\/math> to a target set <math><mi>B<\/mi><\/math>. Given this information, which sets could be <math><mi>A<\/mi><\/math> and <math><mi>B<\/mi><\/math>?",
+  "o": [
+   "<math><mi>A<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>}<\/mo><\/math> and <math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mn>0,1<\/mn><mo>}<\/mo><\/math>",
+   "<math><mi>A<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>}<\/mo><\/math> and <math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mn>0,1<\/mn><mo>,<\/mo><mn>2<\/mn><mo>}<\/mo><\/math>",
+   "<math><mi>A<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>}<\/mo><\/math> and <math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mn>0,1<\/mn><mo>,<\/mo><mn>2,3<\/mn><mo>}<\/mo><\/math>",
+   "<math><mi>A<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>}<\/mo><\/math> and <math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mn>0,1<\/mn><mo>,<\/mo><mn>2,3<\/mn><mo>,<\/mo><mn>4,5<\/mn><mo>}<\/mo><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "<math><mi>f<\/mi><\/math> is a bijection from the domain <math><mi>A<\/mi><\/math> to a target set <math><mi>B<\/mi><\/math>. <math><mi>A<\/mi><\/math> is the set of all <math><mn>3<\/mn><\/math>-bit binary strings. Select the set that is a possibility for <math><mi>B<\/mi><\/math>.",
+  "o": [
+   "<math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>}<\/mo><\/math>",
+   "<math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>}<\/mo><\/math>",
+   "<math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>,<\/mo><mi>g<\/mi><mo>}<\/mo><\/math>",
+   "<math><mi>B<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>,<\/mo><mi>f<\/mi><mo>,<\/mo><mi>g<\/mi><mo>,<\/mo><mi>h<\/mi><mo>}<\/mo><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "<math><mi>f<\/mi><\/math> is a function that maps <math><mn>4<\/mn><\/math>-bit binary strings to <math><mn>4<\/mn><\/math>-bit binary strings. For <math><mi>x<\/mi><mo>∈<\/mo><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>, <math><mi>f<\/mi><mo>(<\/mo><mi>x<\/mi><mo>)<\/mo><\/math> is obtained by removing the first bit from <math><mi>x<\/mi><\/math> and placing that bit at the end of the string. For example, <math><mi>f<\/mi><mo>(<\/mo><mn>1000<\/mn><mo>)<\/mo><mo>=<\/mo><mn>0001<\/mn><\/math>.<br>Which property best describes the function <math><mi>f<\/mi><\/math>?",
+  "o": [
+   "Bijection",
+   "<math><mn>2<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>4<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>16<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence"
+  ],
+  "k": 0
+ },
+ {
+  "q": "<math><mi>f<\/mi><\/math> is a function that maps <math><mn>4<\/mn><\/math>-bit binary strings to the set <math><mo>{<\/mo><mi>a<\/mi><mo>}<\/mo><\/math>. For <math><mi>x<\/mi><mo>∈<\/mo><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>, <math><mi>f<\/mi><mo>(<\/mo><mi>x<\/mi><mo>)<\/mo><mo>=<\/mo><mi>a<\/mi><\/math>.<br>Which property best describes the function <math><mi>f<\/mi><\/math>?",
+  "o": [
+   "Bijection",
+   "<math><mn>2<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>4<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence",
+   "<math><mn>16<\/mn><\/math>-to-<math><mn>1<\/mn><\/math> correspondence"
+  ],
+  "k": 2
+ },
+ {
+  "q": "<math><mi>A<\/mi><mo>=<\/mo><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>}<\/mo><\/math>. The function <math><mi>f<\/mi><\/math> is a bijection and the domain of <math><mi>f<\/mi><\/math> is <math><mi>P<\/mi><mo>(<\/mo><mi>A<\/mi><mo>)<\/mo><\/math>. Which set is a candidate to be the target set for <math><mi>f<\/mi><\/math>?",
+  "o": [
+   "<math><mo>{<\/mo><mn>0,1<\/mn><mo>}<\/mo><\/math>",
+   "<math><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>5<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>{<\/mo><mn>0,1<\/mn><msup><mrow><mo>}<\/mo><\/mrow><mrow><mn>32<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "A license plate has <math><mn>7<\/mn><\/math> characters. Each character can be a capital letter or a digit except for <math><mn>0<\/mn><\/math>.<br>How many license plates are there in which no character appears more than once and the first character is a digit?",
+  "o": [
+   "<math><mn>9<\/mn><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>35,6<\/mn><mo>)<\/mo><\/math>",
+   "<math><mn>9<\/mn><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>34,6<\/mn><mo>)<\/mo><\/math>",
+   "<math><mn>9<\/mn><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>35<\/mn><mo>)<\/mo><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>9<\/mn><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>34<\/mn><mo>)<\/mo><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "A group consists of <math><mn>10<\/mn><\/math> kids and <math><mn>2<\/mn><\/math> adults. On a hike, they must form a line with an adult at the front and an adult at the back. How many ways are there to form the line?",
+  "o": [
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>11<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>12<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>10<\/mn><mo>!<\/mo><\/math>",
+   "<math><mfrac><mrow><mn>12<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "Ten jobs are waiting in the printer queue. Two of the jobs in the queue are called job <math><mi>A<\/mi><\/math> and job <math><mi>B<\/mi><\/math>. How many ways are there for the jobs to be ordered in the queue so that job <math><mi>A<\/mi><\/math> completes some time before job <math><mi>B<\/mi><\/math>?",
+  "o": [
+   "<math><mfrac><mrow><mn>10<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>!<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Ten jobs are waiting in the printer queue. Two of the jobs in the queue are called job <math><mi>A<\/mi><\/math> and job <math><mi>B<\/mi><\/math>. How many ways are there for the jobs to be ordered in the queue so that either job <math><mi>A<\/mi><\/math> or job <math><mi>B<\/mi><\/math> finish last?",
+  "o": [
+   "<math><mfrac><mrow><mn>10<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>!<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Ten jobs are waiting in the printer queue. One of the jobs in the queue is called job <math><mi>A<\/mi><\/math>. How many ways are there for the jobs to be ordered in the queue so that job <math><mi>A<\/mi><\/math> is the first to finish or the last to finish?",
+  "o": [
+   "<math><mfrac><mrow><mn>10<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>9<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>!<\/mo><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "Ten different comic books are given to a class with <math><mn>25<\/mn><\/math> students. No student can get more than one comic book. Since the comic books are all different, it matters who gets which one. How many ways are there to distribute the comic books?",
+  "o": [
+   "<math><mn>25<\/mn><mo>⋅<\/mo><mn>10<\/mn><mo>!<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>25,10<\/mn><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>25<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>25<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "Ten different comic books are given to a class with <math><mn>25<\/mn><\/math> students. No student can get more than one comic book. Since the comic books are all different, it matters who gets which one. One of the students in the class is named Amari.<br>How many ways are there to distribute the comic books if Amari receives a comic book?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>24,9<\/mn><mo>)<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>24,9<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>25,9<\/mn><mo>)<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>25,9<\/mn><mo>)<\/mo><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "Each character in a password is either a capital letter (A-Z) or a digit (<math><mn>0<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>). How many valid passwords have length <math><mn>11<\/mn><\/math>, donotrepeat a character, and contain the letters X, Y, and Z?",
+  "o": [
+   "<math><mn>3<\/mn><mo>!<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>33,8<\/mn><mo>)<\/mo><\/math>",
+   "<math><mn>3<\/mn><mo>!<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>36,8<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>11,3<\/mn><mo>)<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>33,8<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>11,3<\/mn><mo>)<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>36,8<\/mn><mo>)<\/mo><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "A class of <math><mn>30<\/mn><\/math> kids line up for recess. Two of the kids are named Mike and Ike. How many ways are there for the kids to line up if Ike and Mike are next to each other in the line?",
+  "o": [
+   "<math><mfrac><mrow><mn>29<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>29<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>29<\/mn><mo>!<\/mo><\/math>",
+   "<math><mfrac><mrow><mn>30<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "A class of <math><mn>30<\/mn><\/math> kids line up for recess. Two of the kids are named Mike and Ike. How many ways are there for the kids to line up if Ike is ahead of Mike in the line (but Ike and Mike arenotnecessarily next to each other in line)?",
+  "o": [
+   "<math><mfrac><mrow><mn>29<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>",
+   "<math><mn>2<\/mn><mo>⋅<\/mo><mn>29<\/mn><mo>!<\/mo><\/math>",
+   "<math><mn>29<\/mn><mo>!<\/mo><\/math>",
+   "<math><mfrac><mrow><mn>30<\/mn><mo>!<\/mo><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Each character in a password is either a capital letter (A-Z) or a digit (<math><mn>0<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>). How many valid passwords are there in which no character appears more than once, the password has length <math><mn>9<\/mn><\/math>, and the last two characters are letters?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>36,9<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>34,7<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>34,7<\/mn><mo>)<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>26,2<\/mn><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>36,7<\/mn><mo>)<\/mo><mo>⋅<\/mo><mi>P<\/mi><mo>(<\/mo><mn>26,2<\/mn><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "A country has two political parties, the Reds and the Blues. The <math><mn>100<\/mn><\/math>-member senate has <math><mn>44<\/mn><\/math> Reds and <math><mn>56<\/mn><\/math> Blues. How many ways are there to pick a <math><mn>10<\/mn><\/math>-member committee of senators with the same number of Reds as Blues?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>44<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>56<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>100<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>44<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>+<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>56<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>44<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>56<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "How many strings of length <math><mn>10<\/mn><\/math> over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>}<\/mo><\/math> have exactly <math><mn>3<\/mn><\/math> <math><mi>a<\/mi><\/math> &#39;s?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Natasha is in a class of <math><mn>30<\/mn><\/math> students that selects <math><mn>4<\/mn><\/math> leaders. How many ways are there to select the <math><mn>4<\/mn><\/math> leaders so that Natasha is one of the leaders?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>29<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>29<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Natasha and Rodrigo are in a class of <math><mn>30<\/mn><\/math> students that selects <math><mn>4<\/mn><\/math> leaders. How many ways are there to select the <math><mn>4<\/mn><\/math> leaders so that either Natasha and Rodrigo are both selected or Natasha and Rodrigo are bothnotselected?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>28<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>+<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>28<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>28<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>+<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>+<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>28<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>+<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "How many <math><mn>14<\/mn><\/math>-bit strings are there in which the first half of the string has exactly two <math><mn>1<\/mn><\/math> s and the second half of the string has exactly four <math><mn>1<\/mn><\/math> s?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>6<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "How many <math><mn>14<\/mn><\/math>-bit strings are there in which the first bit is <math><mn>1<\/mn><\/math> and there are exactly five <math><mn>0<\/mn><\/math> s?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>13<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mn>14<\/mn><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>13<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mfrac><mrow><mn>1<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>6<\/mn><\/mrow><mrow><mn>1<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "A bin contains <math><mn>20<\/mn><\/math> balls, numbered <math><mn>1<\/mn><\/math> through <math><mn>20<\/mn><\/math>. How many ways are there to pick a set of seven balls from the bin in which exactly five of the chosen balls have an odd number?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mfrac><mrow><mn>1<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Which expression is equal to <math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>53<\/mn><\/mrow><mrow><mn>23<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>?",
+  "o": [
+   "<math><mfrac><mrow><mi>P<\/mi><mo>(<\/mo><mn>53,30<\/mn><mo>)<\/mo><\/mrow><mrow><mn>30<\/mn><mo>!<\/mo><\/mrow><\/mfrac><\/math>",
+   "<math><mfrac><mrow><mi>P<\/mi><mo>(<\/mo><mn>53,23<\/mn><mo>)<\/mo><\/mrow><mrow><mn>30<\/mn><mo>!<\/mo><\/mrow><\/mfrac><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>53<\/mn><\/mrow><mrow><mn>30<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>53<\/mn><\/mrow><mrow><mn>24<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mn>24<\/mn><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "How many strings over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>,<\/mo><mi>e<\/mi><mo>}<\/mo><\/math> have length <math><mn>15<\/mn><\/math> and exactly six <math><mi>b<\/mi><\/math>’s?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>15<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>15<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>15<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>15<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "A soccer team has <math><mn>20<\/mn><\/math> players. The coach must select <math><mn>11<\/mn><\/math> players to travel to an away game.<br>Two of the players on the team are named Gabrielle and Imelda. How many ways are there <br>for the coach to select the <math><mn>11<\/mn><\/math> players if Gabrielle and Imelda are included?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>18<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>18<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "A state&#39;s license plate has <math><mn>7<\/mn><\/math> characters. Each character can be a capital letter (A-Z), or a digit except for <math><mn>0<\/mn><\/math> (<math><mn>1<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>). How many license plates are there in which exactly <math><mn>3<\/mn><\/math> of the <math><mn>7<\/mn><\/math> characters are digits?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>35<\/mn><mo>)<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>7,3<\/mn><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>35<\/mn><mo>)<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>26<\/mn><mo>)<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><mo>⋅<\/mo><msup><mrow><mo>(<\/mo><mn>26<\/mn><mo>)<\/mo><\/mrow><mrow><mn>4<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "Ten identical copies of a movie are stored on <math><mn>40<\/mn><\/math> computers such that each computer has at most <math><mn>1<\/mn><\/math> copy. How many different ways can the <math><mn>10<\/mn><\/math> copies be stored?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>40,10<\/mn><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>40<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>40<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>40<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "Ten different movies are stored on <math><mn>40<\/mn><\/math> computers such that each computer has at most one movie. Since the movies are different, it matters which movie is stored on which computer. How many different ways can the <math><mn>10<\/mn><\/math> movies be stored?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>40,10<\/mn><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>40<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>40<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>40<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "Twenty applicants from a pool of <math><mn>90<\/mn><\/math> applications will be hired. How many ways are there to select the applicants who will be hired?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>90,20<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>90<\/mn><\/mrow><mrow><mn>20<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>90<\/mn><\/mrow><mrow><mn>20<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>20<\/mn><\/mrow><mrow><mn>90<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "Twenty applicants are interviewed for a job. The interviewer creates an ordered list (first to last) of the best <math><mn>6<\/mn><\/math> applicants. How many ways are there for the interviewer to create the list?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>20,6<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>20<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>6<\/mn><\/mrow><mrow><mn>20<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "A surfing school has <math><mn>22<\/mn><\/math> different surf boards. A class has <math><mn>9<\/mn><\/math> student surfers each of whom will select exactly one board. How many ways are there for the class to make the selections if <br>it matters who gets which board?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>22,9<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>22<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>22<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>9<\/mn><\/mrow><mrow><mn>22<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "The finalists in an art contest will each get a new set of paints. The sets of paints given<br>to the finalists are all identical. If there are <math><mn>78<\/mn><\/math> contestants and <math><mn>10<\/mn><\/math> finalists,<br>how many ways are there to select who gets the paint sets?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>78,10<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>78<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>78<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>78<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "For five consecutive days, a teacher will give a different book to a student in a class<br>with <math><mn>20<\/mn><\/math> students.<br>In each of the five days, one book is given away and the books are all different.<br>There are no restrictions on the number of books any particular student can receive.<br>How many ways are there to give out the books?",
+  "o": [
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>20,5<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>20<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>20<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "A bank PIN is a string of seven digits, each digit <math><mn>0<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>. Five of the digits <math><mo>{<\/mo><mn>0,2<\/mn><mo>,<\/mo><mn>4,6<\/mn><mo>,<\/mo><mn>8<\/mn><mo>}<\/mo><\/math> are even, and five of the digits <math><mo>{<\/mo><mn>1,3<\/mn><mo>,<\/mo><mn>5,7<\/mn><mo>,<\/mo><mn>9<\/mn><mo>}<\/mo><\/math> are odd. How many PINs are there in which exactly four of the digits are even?",
+  "o": [
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>7<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "A class of <math><mn>20<\/mn><\/math> students is divided into two groups of <math><mn>10<\/mn><\/math>, and then each group is lined up in a particular order.<br>How many ways are there to divide the class and line up the groups?",
+  "o": [
+   "<math><mn>20<\/mn><mo>!<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mn>10<\/mn><mo>!<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mn>10<\/mn><mo>!<\/mo><mo>⋅<\/mo><mn>10<\/mn><mo>!<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "How many binary strings of length <math><mn>10<\/mn><\/math> have at least <math><mn>2<\/mn><\/math> adjacent bits that are the same (&quot;<math><mn>00<\/mn><\/math>&quot; or &quot;<math><mn>11<\/mn><\/math>&quot;) somewhere in the string?",
+  "o": [
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mn>1<\/mn><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mn>2<\/mn><\/math>",
+   "<math><mfrac><mrow><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/mrow><mrow><mn>2<\/mn><\/mrow><\/mfrac><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "How many strings of length <math><mn>10<\/mn><\/math> over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>}<\/mo><\/math> have at least one <math><mi>b<\/mi><\/math> somewhere in the string?",
+  "o": [
+   "<math><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>10<\/mn><mo>⋅<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>",
+   "<math><mn>10<\/mn><mo>⋅<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "How many binary strings of length <math><mn>10<\/mn><\/math> are there in which the number of <math><mn>0<\/mn><\/math> s in the string isnotequal to the number of <math><mn>1<\/mn><\/math> s in the string?",
+  "o": [
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 3
+ },
+ {
+  "q": "A class of <math><mn>30<\/mn><\/math> students with <math><mn>14<\/mn><\/math> boys and <math><mn>16<\/mn><\/math> girls must select <math><mn>4<\/mn><\/math> leaders. How many ways can the <math><mn>4<\/mn><\/math> leaders be selected so that at least one girl is selected?",
+  "o": [
+   "<math><mn>16<\/mn><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>29<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mn>16<\/mn><mo>⋅<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>16<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>30<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>14<\/mn><\/mrow><mrow><mn>4<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "There are <math><mn>100<\/mn><\/math> runners in a race. <math><mn>75<\/mn><\/math> of the runners are adults, and <math><mn>25<\/mn><\/math> are children.<br>A gold medal is given to the first place runner, a silver medal to the second place runner, and<br>a bronze medal to the third place runner. How many outcomes are there for who gets <br>which medal so that at least one of the children receives a medal?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>100<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>25<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>100,3<\/mn><mo>)<\/mo><mo>-<\/mo><mi>P<\/mi><mo>(<\/mo><mn>25,3<\/mn><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>100<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>75<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mi>P<\/mi><mo>(<\/mo><mn>100,3<\/mn><mo>)<\/mo><mo>-<\/mo><mi>P<\/mi><mo>(<\/mo><mn>75,3<\/mn><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "A bank PIN is a string of seven digits, each digit <math><mn>0<\/mn><mo>-<\/mo><mn>9<\/mn><\/math>. Five of the digits <math><mo>{<\/mo><mn>0,2<\/mn><mo>,<\/mo><mn>4,6<\/mn><mo>,<\/mo><mn>8<\/mn><mo>}<\/mo><\/math> are even and five of the digits <math><mo>{<\/mo><mn>1,3<\/mn><mo>,<\/mo><mn>5,7<\/mn><mo>,<\/mo><mn>9<\/mn><mo>}<\/mo><\/math> are odd. How many PINs have at least one odd digit?",
+  "o": [
+   "<math><msup><mrow><mn>7<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>7<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>7<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>10<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>7<\/mn><\/mrow><mrow><mn>5<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 2
+ },
+ {
+  "q": "A bin contains <math><mn>21<\/mn><\/math> balls, numbered <math><mn>1<\/mn><\/math> through <math><mn>21<\/mn><\/math>. How many ways can a set of six balls be picked from the bin in which at least one ball has an odd number?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>21<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>11<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>21<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>11<\/mn><\/mrow><mrow><mn>6<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 1
+ },
+ {
+  "q": "How many strings of length <math><mn>10<\/mn><\/math> over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>d<\/mi><mo>}<\/mo><\/math> donothave exactly three <math><mi>b<\/mi><\/math>’s?",
+  "o": [
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>7<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>10<\/mn><\/mrow><mrow><mn>3<\/mn><\/mrow><\/mfrac><mo>)<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "How many strings of length <math><mn>10<\/mn><\/math> over the alphabet <math><mo>{<\/mo><mi mathvariant=\"normal\">a<\/mi><mo>,<\/mo><mi>b<\/mi><mo>,<\/mo><mi>c<\/mi><mo>,<\/mo><mi>A<\/mi><mo>,<\/mo><mi>B<\/mi><mo>}<\/mo><\/math> have at least one uppercase letter?",
+  "o": [
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><mn>10<\/mn><\/math>",
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>2<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>3<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>",
+   "<math><msup><mrow><mn>5<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><mo>-<\/mo><msup><mrow><mn>4<\/mn><\/mrow><mrow><mn>10<\/mn><\/mrow><\/msup><\/math>"
+  ],
+  "k": 0
+ },
+ {
+  "q": "A soccer team has <math><mn>20<\/mn><\/math> players. The coach must select <math><mn>11<\/mn><\/math> players to travel to an away game.<br>Two of the players on the team are named Gabrielle and Imelda. How many ways can the coach select the <math><mn>11<\/mn><\/math> players so that Gabrielle and Imelda arenotboth included?",
+  "o": [
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>18<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>18<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>18<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>",
+   "<math><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>11<\/mn><\/mrow><\/mfrac><mo>)<\/mo><mo>-<\/mo><mo>(<\/mo><mfrac linethickness=\"0pt\"><mrow><mn>20<\/mn><\/mrow><mrow><mn>9<\/mn><\/mrow><\/mfrac><mo>)<\/mo><\/math>"
+  ],
+  "k": 2
+ }
+];
+
+(function () {
+  "use strict";
+  const LETTERS = ["a", "b", "c", "d"];
+  const STORE_KEY = "cs55-ch9-quiz-v2";
+  const $ = (id) => document.getElementById(id);
+  const KEY = QUESTIONS.map((q, i) => (((q.k - 3 * i - 1) % 4) + 4) % 4);
+  QUESTIONS.forEach((q) => { delete q.k; });
+  const ans = (qi) => KEY[qi];
+
+  let S = null;          // current session state
+  let timerId = null;
+  let reviewFilter = "all";
+
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { return null; } },
+    set(v) { try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) {} },
+    clear() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} }
+  };
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function fmtTime(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  function elapsed() {
+    return Math.floor((S.elapsedMs + (S.finished ? 0 : Date.now() - S.resumedAt)) / 1000);
+  }
+
+  /* ---------- Session ---------- */
+  function newSession(indices, mode, shuffleQ, shuffleA) {
+    const order = shuffleQ ? shuffle(indices) : indices.slice();
+    S = {
+      mode, order,
+      choiceOrder: order.map((qi) => shuffleA ? shuffle([0, 1, 2, 3]) : [0, 1, 2, 3]),
+      answers: order.map(() => null),   // stores ORIGINAL option index
+      flags: order.map(() => false),
+      checked: order.map(() => false),
+      cur: 0, finished: false,
+      elapsedMs: 0, resumedAt: Date.now()
+    };
+    save();
+    showQuiz();
+  }
+
+  function save() {
+    if (!S) return;
+    const snap = Object.assign({}, S, { elapsedMs: S.finished ? S.elapsedMs : S.elapsedMs + (Date.now() - S.resumedAt), resumedAt: Date.now() });
+    store.set(snap);
+  }
+
+  function isCorrect(i) { return S.answers[i] !== null && S.answers[i] === ans(S.order[i]); }
+  function isRevealed(i) { return S.finished || (S.mode === "practice" && S.checked[i]); }
+  function answeredCount() { return S.answers.filter((a) => a !== null).length; }
+  function correctCount() { return S.order.reduce((n, _, i) => n + (isCorrect(i) ? 1 : 0), 0); }
+  function checkedCorrectCount() { return S.order.reduce((n, _, i) => n + (S.checked[i] && isCorrect(i) ? 1 : 0), 0); }
+
+  /* ---------- Views ---------- */
+  function show(view) {
+    ["startView", "quizView", "resultsView"].forEach((v) => $(v).classList.toggle("hidden", v !== view));
+    $("stats").classList.toggle("hidden", view === "startView");
+    window.scrollTo({ top: 0 });
+  }
+
+  function showStart() {
+    stopTimer();
+    show("startView");
+    $("qCount").textContent = QUESTIONS.length;
+    const saved = store.get();
+    if (saved && !saved.finished && Array.isArray(saved.order) && saved.order.length) {
+      const n = saved.answers.filter((a) => a !== null).length;
+      $("resumeText").textContent = "You have a quiz in progress (" + n + " of " + saved.order.length + " answered, " + (saved.mode === "test" ? "Test" : "Practice") + " mode).";
+      $("resumeBox").classList.remove("hidden");
+    } else {
+      $("resumeBox").classList.add("hidden");
+    }
+  }
+
+  function showQuiz() {
+    show("quizView");
+    $("statTotal").textContent = S.order.length;
+    $("statScoreWrap").classList.toggle("hidden", S.mode !== "practice");
+    $("legend").innerHTML = S.mode === "practice"
+      ? '<span><i style="background:var(--primary-soft);border-color:#b9c8e0"></i>Answered, not checked</span><span><i style="background:var(--ok-soft);border-color:#a9d6b7"></i>Checked: correct</span><span><i style="background:var(--bad-soft);border-color:#efb3bd"></i>Checked: incorrect</span><span><i style="background:var(--flag);border-color:var(--flag);border-radius:50%"></i>Flagged</span>'
+      : '<span><i style="background:var(--primary-soft);border-color:#b9c8e0"></i>Answered</span><span><i></i>Not answered</span><span><i style="background:var(--flag);border-color:var(--flag);border-radius:50%"></i>Flagged</span>';
+    buildGrid();
+    render();
+    startTimer();
+  }
+
+  function buildGrid() {
+    const g = $("navGrid");
+    g.innerHTML = "";
+    S.order.forEach((_, i) => {
+      const b = document.createElement("button");
+      b.className = "cell";
+      b.textContent = i + 1;
+      b.addEventListener("click", () => go(i));
+      g.appendChild(b);
+    });
+  }
+
+  function updateGrid() {
+    const cells = $("navGrid").children;
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i], ans = S.answers[i] !== null;
+      c.className = "cell";
+      const shown = ans && isRevealed(i);
+      if (ans) c.classList.add(shown ? (isCorrect(i) ? "correct" : "wrong") : "answered");
+      if (S.flags[i]) c.classList.add("flagged");
+      if (i === S.cur) c.classList.add("current");
+      let label = "Question " + (i + 1) + (ans ? ", answered" : ", not answered");
+      if (shown) label += isCorrect(i) ? ", correct" : ", incorrect";
+      if (S.flags[i]) label += ", flagged";
+      c.setAttribute("aria-label", label);
+      if (i === S.cur) c.setAttribute("aria-current", "step"); else c.removeAttribute("aria-current");
+    }
+  }
+
+  function render() {
+    const i = S.cur, q = QUESTIONS[S.order[i]], chosen = S.answers[i], key = ans(S.order[i]);
+    const locked = isRevealed(i);
+    $("qNum").textContent = "Question " + (i + 1) + " of " + S.order.length;
+    $("qText").innerHTML = q.q;
+    const btnFlag = $("btnFlag");
+    btnFlag.setAttribute("aria-pressed", S.flags[i] ? "true" : "false");
+    btnFlag.innerHTML = S.flags[i] ? "&#9873; Flagged" : "&#9873; Flag for review";
+
+    const list = $("choices");
+    list.innerHTML = "";
+    S.choiceOrder[i].forEach((orig, pos) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.type = "button";
+      let mark = "";
+      if (locked) {
+        b.disabled = true;
+        if (orig === key) { b.classList.add("correct"); mark = orig === chosen ? "&#10003; Your answer" : "&#10003; Correct answer"; }
+        else if (orig === chosen) { b.classList.add("wrong"); mark = "&#10007; Your answer"; }
+      } else if (orig === chosen) {
+        b.classList.add("selected");
+      }
+      b.setAttribute("aria-pressed", orig === chosen ? "true" : "false");
+      b.innerHTML = '<span class="letter" aria-hidden="true">' + LETTERS[pos] + '</span><span class="body"><span class="sr-only">Choice ' + LETTERS[pos] + ': </span>' + q.o[orig] + '</span>' + (mark ? '<span class="mark">' + mark + '</span>' : "");
+      b.addEventListener("click", () => choose(orig));
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+
+    const fb = $("feedback");
+    if (locked) {
+      const ok = chosen === key;
+      const correctPos = S.choiceOrder[i].indexOf(key);
+      fb.className = "feedback " + (ok ? "ok" : "bad");
+      fb.textContent = ok ? "Correct!" : (chosen === null ? "Unanswered. " : "Not quite. ") + "The correct answer is (" + LETTERS[correctPos] + ").";
+    } else {
+      fb.className = "feedback hidden";
+      fb.textContent = "";
+    }
+
+    const btnCheck = $("btnCheck");
+    btnCheck.classList.toggle("hidden", S.mode !== "practice" || locked);
+    btnCheck.disabled = chosen === null;
+    btnCheck.title = chosen === null ? "Choose an answer first" : "";
+
+    $("btnPrev").disabled = i === 0;
+    const last = i === S.order.length - 1;
+    $("btnNext").innerHTML = last ? "Finish &#10003;" : "Next &rarr;";
+    updateStats();
+    updateGrid();
+  }
+
+  function updateStats() {
+    const n = answeredCount(), total = S.order.length;
+    $("statAnswered").textContent = n;
+    $("statScore").textContent = checkedCorrectCount();
+    $("progressBar").style.width = (100 * n / total) + "%";
+    $("progress").setAttribute("aria-valuemax", total);
+    $("progress").setAttribute("aria-valuenow", n);
+  }
+
+  function choose(orig) {
+    if (S.finished) return;
+    const i = S.cur;
+    if (isRevealed(i)) return;
+    S.answers[i] = orig;
+    save();
+    render();
+  }
+
+  function check() {
+    const i = S.cur;
+    if (S.finished || S.mode !== "practice" || S.answers[i] === null || S.checked[i]) return;
+    S.checked[i] = true;
+    save();
+    render();
+  }
+
+  function go(i) {
+    if (i < 0 || i >= S.order.length) return;
+    S.cur = i;
+    save();
+    render();
+    $("qText").scrollIntoView({ block: "nearest" });
+  }
+
+  function next() {
+    if (S.cur === S.order.length - 1) submit();
+    else go(S.cur + 1);
+  }
+
+  function submit() {
+    const left = S.order.length - answeredCount();
+    if (left > 0 && !confirm(left + " question" + (left === 1 ? " is" : "s are") + " unanswered. Submit anyway?")) return;
+    S.elapsedMs += Date.now() - S.resumedAt;
+    S.resumedAt = Date.now();
+    S.finished = true;
+    stopTimer();
+    save();
+    showResults();
+  }
+
+  /* ---------- Results ---------- */
+  function showResults() {
+    show("resultsView");
+    const total = S.order.length, correct = correctCount(), answered = answeredCount();
+    const pct = Math.round(100 * correct / total);
+    $("ring").style.setProperty("--p", pct);
+    $("resPct").textContent = pct + "%";
+    $("kCorrect").textContent = correct;
+    $("kWrong").textContent = answered - correct;
+    $("kSkipped").textContent = total - answered;
+    $("kTime").textContent = fmtTime(elapsed());
+    $("statTime").textContent = fmtTime(elapsed());
+    $("statAnswered").textContent = answered;
+    $("statScore").textContent = correct;
+    $("statScoreWrap").classList.remove("hidden");
+    const t = pct >= 90 ? ["Excellent work!", "You have a strong command of Chapter 9 counting techniques."]
+            : pct >= 75 ? ["Nice job!", "Review the questions you missed to lock in the remaining ideas."]
+            : pct >= 60 ? ["Getting there.", "Revisit the missed topics in the zyBook, then retry the missed questions."]
+            : ["Keep practicing.", "Work back through Chapter 9 and use “Retry missed questions” to target weak spots."];
+    $("resTitle").textContent = t[0];
+    $("resMsg").textContent = correct + " of " + total + " correct. " + t[1];
+    $("btnRetryMissed").disabled = correct === total;
+    setFilter("all");
+  }
+
+  function setFilter(f) {
+    reviewFilter = f;
+    document.querySelectorAll(".filters button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.f === f ? "true" : "false"));
+    renderReview();
+  }
+
+  function renderReview() {
+    const box = $("review");
+    box.innerHTML = "";
+    let shown = 0;
+    S.order.forEach((qi, i) => {
+      const q = QUESTIONS[qi], chosen = S.answers[i], ok = isCorrect(i);
+      if (reviewFilter === "ok" && !ok) return;
+      if (reviewFilter === "bad" && ok) return;
+      if (reviewFilter === "flag" && !S.flags[i]) return;
+      shown++;
+      const art = document.createElement("article");
+      art.className = "card ritem " + (ok ? "ok" : "bad");
+      const status = chosen === null ? "Unanswered" : ok ? "Correct" : "Incorrect";
+      let items = "";
+      S.choiceOrder[i].forEach((orig, pos) => {
+        const isC = orig === ans(qi), isMine = orig === chosen;
+        const cls = isC ? "c" : (isMine ? "w" : "");
+        const tag = isC && isMine ? "Your answer &#10003;" : isC ? "Correct answer" : isMine ? "Your answer &#10007;" : "";
+        items += '<li class="' + cls + '"><span class="l">' + LETTERS[pos] + '.</span><span>' + q.o[orig] + '</span>' + (tag ? '<span class="t">' + tag + '</span>' : "") + '</li>';
+      });
+      art.innerHTML = '<div class="rh"><span>Question ' + (i + 1) + (S.flags[i] ? ' &middot; <span style="color:var(--flag)">&#9873; Flagged</span>' : "") + '</span><span class="tag ' + (ok ? "ok" : "bad") + '">' + status + '</span></div>' +
+        '<div class="rq">' + q.q + '</div><ul>' + items + '</ul>';
+      box.appendChild(art);
+    });
+    if (!shown) box.innerHTML = '<p style="color:var(--muted)">No questions match this filter.</p>';
+  }
+
+  /* ---------- Timer ---------- */
+  function startTimer() {
+    stopTimer();
+    const tick = () => { $("statTime").textContent = fmtTime(elapsed()); };
+    tick();
+    timerId = setInterval(tick, 1000);
+  }
+  function stopTimer() { if (timerId) clearInterval(timerId); timerId = null; }
+
+  /* ---------- Wiring ---------- */
+  $("btnStart").addEventListener("click", () => {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    newSession(QUESTIONS.map((_, i) => i), mode, $("optShuffleQ").checked, $("optShuffleA").checked);
+  });
+  $("btnResume").addEventListener("click", () => {
+    const saved = store.get();
+    if (!saved) return showStart();
+    S = saved; S.resumedAt = Date.now();
+    showQuiz();
+  });
+  $("btnDiscard").addEventListener("click", () => { store.clear(); showStart(); });
+  $("btnPrev").addEventListener("click", () => go(S.cur - 1));
+  $("btnNext").addEventListener("click", next);
+  $("btnCheck").addEventListener("click", check);
+  $("btnFlag").addEventListener("click", () => { S.flags[S.cur] = !S.flags[S.cur]; save(); render(); });
+  $("btnSubmit").addEventListener("click", submit);
+  $("btnQuit").addEventListener("click", () => { save(); showStart(); });
+  $("btnRestart").addEventListener("click", () => { store.clear(); S = null; showStart(); });
+  $("btnPrint").addEventListener("click", () => window.print());
+  $("btnRetryMissed").addEventListener("click", () => {
+    const missed = S.order.filter((qi, i) => !isCorrect(i));
+    if (!missed.length) return;
+    newSession(missed, S.mode, $("optShuffleQ").checked, $("optShuffleA").checked);
+  });
+  document.querySelectorAll(".filters button").forEach((b) => b.addEventListener("click", () => setFilter(b.dataset.f)));
+
+  document.addEventListener("keydown", (e) => {
+    if ($("quizView").classList.contains("hidden") || !S || S.finished) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const map = { a: 0, b: 1, c: 2, d: 3, "1": 0, "2": 1, "3": 2, "4": 3 };
+    if (k in map) { e.preventDefault(); choose(S.choiceOrder[S.cur][map[k]]); }
+    else if (k === "arrowright") { e.preventDefault(); if (S.cur < S.order.length - 1) go(S.cur + 1); }
+    else if (k === "arrowleft") { e.preventDefault(); go(S.cur - 1); }
+    else if (k === "f") { e.preventDefault(); $("btnFlag").click(); }
+    else if (k === "enter" && e.target === document.body) { e.preventDefault(); check(); }
+  });
+  window.addEventListener("beforeunload", save);
+
+  showStart();
+})();
+</script>
+</body>
+</html>
