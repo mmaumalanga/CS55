@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability Interactive Quiz</title>
+<style>
+:root{
+  --user-primary:#1a4480;
+  --user-accent:#c8102e;
+  --user-background:#ffffff;
+  --ink:#1b1f24;
+  --muted:#5a6270;
+  --line:#d6dce6;
+  --soft:#eef3fa;
+  --ok:#1e7b34;
+  --ok-soft:#e7f4ea;
+  --bad-soft:#fbe9ec;
+  --skip:#8a6d1a;
+  --skip-soft:#fff6dc;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--user-background);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{background:var(--user-primary);color:#fff;padding:20px 16px 18px}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0}
+header p{margin:0;opacity:.9;font-size:.95rem}
+header h1{margin:4px 0 0;font-size:1.6rem;line-height:1.25}
+.bar{position:sticky;top:0;z-index:5;background:var(--user-background);border-bottom:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding-top:10px;padding-bottom:10px}
+.modes{display:inline-flex;border:2px solid var(--user-primary);border-radius:999px;overflow:hidden}
+.modes button{font:inherit;font-weight:600;border:0;background:#fff;color:var(--user-primary);padding:6px 16px;cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--user-primary);color:#fff}
+.modes button:focus-visible,.btn:focus-visible,.chips a:focus-visible{outline:3px solid var(--user-accent);outline-offset:2px}
+.status{color:var(--muted);font-size:.92rem;margin-left:auto}
+.status b{color:var(--user-primary)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips a{font-size:.85rem;color:var(--user-primary);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.chips a:hover{border-color:var(--user-primary)}
+main{padding:20px 0 60px}
+.intro{border-left:5px solid var(--user-primary);background:var(--soft);padding:10px 14px;border-radius:6px;margin:0 0 16px}
+.intro p{margin:4px 0}
+h2.part{color:var(--user-primary);font-size:1.3rem;margin:30px 0 10px;padding-bottom:6px;border-bottom:3px solid var(--user-accent)}
+h2.part span{color:var(--muted);font-size:.95rem;font-weight:400}
+fieldset.q{border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;margin:0 0 14px;position:relative;min-width:0}
+fieldset.q.right{border-color:var(--ok);background:linear-gradient(var(--ok-soft),#fff 60px)}
+fieldset.q.wrong{border-color:var(--user-accent);background:linear-gradient(var(--bad-soft),#fff 60px)}
+fieldset.q.skipped{border-color:var(--skip);background:linear-gradient(var(--skip-soft),#fff 60px)}
+legend{display:contents}
+.qn{display:inline-grid;place-items:center;min-width:30px;height:30px;border-radius:50%;background:var(--user-primary);color:#fff;font-weight:700;font-size:.9rem;margin-right:10px;float:left}
+.stem{display:block;font-weight:600;overflow:hidden;padding-top:3px;padding-right:110px}
+.lvl{position:absolute;top:14px;right:14px;font-size:.7rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--user-primary)}
+.opts{display:grid;gap:6px;margin:12px 0 0 40px}
+.opt{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;background:#fff}
+.opt:hover{border-color:var(--user-primary)}
+.opt input{margin:4px 0 0;accent-color:var(--user-primary);flex:none}
+.opt .let{font-weight:700;color:var(--user-primary);flex:none}
+.opt:has(input:checked){border-color:var(--user-primary);box-shadow:0 0 0 2px rgba(26,68,128,.18)}
+.opt:has(input:focus-visible){outline:3px solid var(--user-accent);outline-offset:2px}
+.opt.is-correct{border-color:var(--ok);background:var(--ok-soft)}
+.opt.is-wrong{border-color:var(--user-accent);background:var(--bad-soft)}
+.locked .opt{cursor:default}
+.qfoot{display:flex;align-items:center;gap:10px;margin:10px 0 0 40px}
+.mark{font-weight:700}
+.btn{font:inherit;font-weight:600;border:1px solid var(--user-primary);background:#fff;color:var(--user-primary);border-radius:8px;padding:7px 14px;cursor:pointer}
+.btn:hover:not(:disabled){background:var(--soft)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--user-primary);color:#fff}
+.btn.primary:hover:not(:disabled){background:#14365f}
+.btn.accent{background:var(--user-accent);border-color:var(--user-accent);color:#fff}
+.fb{margin:10px 0 0 40px;padding:8px 12px;border-radius:8px;background:var(--soft);font-size:.95rem}
+.fb b.good{color:var(--ok)}
+.fb b.bad{color:var(--user-accent)}
+.fb b.skip{color:var(--skip)}
+body.test .check{display:none}
+body.practice #submitBar{display:none}
+#submitBar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;border-top:1px solid var(--line);padding:18px 0 0;margin-top:20px}
+#results{border:2px solid var(--user-primary);border-radius:12px;padding:16px 18px;margin:0 0 20px}
+#results h2{margin:0 0 6px;color:var(--user-primary)}
+.score{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px}
+.score div{flex:1 1 120px;border-radius:10px;padding:10px 12px;text-align:center}
+.score b{display:block;font-size:1.6rem;line-height:1.2}
+.s-pct{background:var(--soft);color:var(--user-primary)}
+.s-ok{background:var(--ok-soft);color:var(--ok)}
+.s-bad{background:var(--bad-soft);color:var(--user-accent)}
+.s-skip{background:var(--skip-soft);color:var(--skip)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin:6px 0 12px}
+.grid a{display:block;text-align:center;text-decoration:none;font-weight:700;border-radius:6px;padding:6px 0;border:2px solid}
+.grid a.ok{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+.grid a.bad{color:var(--user-accent);border-color:var(--user-accent);background:var(--bad-soft)}
+.grid a.skip{color:var(--skip);border-color:var(--skip);background:var(--skip-soft)}
+.lists p{margin:4px 0}
+.legend{font-size:.88rem;color:var(--muted)}
+.partscore{width:100%;border-collapse:collapse;margin:6px 0 12px;font-size:.92rem}
+.partscore th,.partscore td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+.partscore th{background:var(--soft)}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;padding:14px 0 24px}
+@media (max-width:640px){
+  header h1{font-size:1.3rem}
+  html{scroll-padding-top:12px}
+  .bar{position:static}
+  .status{margin-left:0;width:100%}
+  .opts,.qfoot,.fb{margin-left:0}
+  .stem{padding-right:0}
+  .lvl{position:static;display:inline-block;margin-top:8px}
+}
+@media print{.bar,#submitBar,.check{display:none}}
+</style>
+</head>
+<body class="practice">
+<header>
+  <div class="wrap">
+    <p>CS55 &ndash; Discrete Structures for Computer Science &middot; San Joaquin Delta College</p>
+    <h1>Chapter 12 Interactive Quiz: Finding Probabilities</h1>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="modes" role="group" aria-label="Quiz mode">
+      <button type="button" id="mPractice" aria-pressed="true">Practice</button>
+      <button type="button" id="mTest" aria-pressed="false">Test</button>
+    </div>
+    <nav class="chips" aria-label="Jump to part">
+      <a href="#part1">Part I</a><a href="#part2">Part II</a><a href="#part3">Part III</a>
+    </nav>
+    <span class="status" id="status" aria-live="polite"></span>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="intro" id="intro"></div>
+  <section id="results" hidden tabindex="-1" aria-live="polite"></section>
+
+  <form id="quiz" novalidate></form>
+
+  <div id="submitBar">
+    <button type="button" class="btn accent" id="submit">Submit quiz</button>
+    <button type="button" class="btn" id="resetTest">Start over</button>
+  </div>
+  <p style="text-align:center;margin-top:18px"><button type="button" class="btn" id="resetPractice">Clear all answers</button></p>
+</main>
+<footer><div class="wrap">CS55 &ndash; Discrete Structures for Computer Science &middot; San Joaquin Delta College &middot; 60 questions: probability of an event, unions and complements, and conditional probability.</div></footer>
+
+<script>
+(function(){
+"use strict";
+/* Questions: [Bloom's level, stem, options a-d] */
+var Q = [
+ ["K", "If all outcomes in a finite sample space S are equally likely, the probability of an event E is:", ["P(E) = |E| / |S|", "P(E) = |S| / |E|", "P(E) = |E| − |S|", "P(E) = |E| · |S|"]],
+ ["K", "Which statement is always true for any event E?", ["P(E) > 0", "0 ≤ P(E) ≤ 1", "−1 ≤ P(E) ≤ 1", "0 < P(E) < 1"]],
+ ["K", "How many outcomes are in the sample space when a coin is tossed 3 times?", ["3", "6", "8", "9"]],
+ ["K", "How many outcomes are in the sample space when two dice are tossed?", ["12", "36", "11", "21"]],
+ ["K", "How many different 5-card hands can be dealt from a standard 52-card deck?", ["52⁵ = 380,204,032", "P(52, 5) = 311,875,200", "C(52, 5) = 2,598,960", "52 × 5 = 260"]],
+ ["C", "What does P(E) = 0 mean?", ["E is certain to happen", "E happens about half the time", "E is an impossible event; it contains no outcomes", "E is the whole sample space"]],
+ ["C", "Why do we count card hands with combinations instead of permutations?", ["Cards are replaced after each draw", "Permutations always give smaller numbers", "Each card is equally likely to be drawn twice", "The order in which the cards are dealt does not change the hand"]],
+ ["C", "When one fair die is tossed, which two events have the SAME probability?", ["“A 6” and “an even number”", "“An even number” and “a number greater than 3”", "“A number less than 3” and “an odd number”", "“A 1 or a 2” and “a number greater than 2”"]],
+ ["C", "A fair coin has landed heads 5 times in a row. What is the probability that the next toss is heads?", ["1/32", "1/64", "1/2", "Less than 1/2, because tails is “due”"]],
+ ["C", "With two dice, why is a sum of 7 more likely than a sum of 2?", ["Six outcomes give a sum of 7, but only one outcome, (1, 1), gives a sum of 2", "7 is a prime number", "Each sum from 2 to 12 is equally likely", "There are more ways to roll doubles"]],
+ ["A", "One fair die is tossed. What is the probability of getting a number greater than 4?", ["1/6", "1/2", "2/3", "1/3"]],
+ ["A", "A fair coin is tossed 3 times. What is the probability of getting exactly 2 heads?", ["3/8", "1/4", "1/2", "2/3"]],
+ ["A", "Two fair dice are tossed. What is the probability that the sum is 8?", ["1/6", "5/36", "1/9", "8/36"]],
+ ["A", "One card is drawn from a standard deck. What is the probability that it is a face card (J, Q or K) of hearts?", ["1/13", "3/13", "3/52", "12/52"]],
+ ["A", "A lotto game draws 6 numbers from 1 to 49 (order does not matter). What is the probability of winning the jackpot with one ticket?", ["6/49", "1/13,983,816", "1/10,068,347,520", "1/2,598,960"]],
+ ["N", "Two cards are drawn at the same time from a standard deck. What is the probability that both are aces?", ["1/169", "1/221", "1/13", "2/52"]],
+ ["N", "A lottery draws 5 white balls from 1–69 and 1 red ball from 1–26. What is the probability that one ticket matches all six numbers?", ["1/11,238,513", "1/95", "1/292,201,338", "6/95"]],
+ ["N", "What is the probability that a 5-card hand is a flush (all five cards the same suit, including straight flushes)?", ["4 · C(13, 5) / C(52, 5) ≈ 0.00198", "C(13, 5) / C(52, 5) ≈ 0.000495", "(1/4)⁵ ≈ 0.000977", "4 · 13⁵ / 52⁵ ≈ 0.00391"]],
+ ["N", "A fair coin is tossed 5 times. What is the probability of exactly 3 heads?", ["5/16", "3/5", "1/8", "3/32"]],
+ ["N", "A student says, “There are 11 possible sums with two dice (2 through 12), so P(sum = 11) = 1/11.” What is wrong, and what is the correct probability?", ["Nothing is wrong; it is 1/11", "There are 12 sums, so it is 1/12", "Only (5, 6) counts, so it is 1/36", "The sums are not equally likely; P(sum = 11) = 2/36 = 1/18"]],
+ ["K", "The complement rule states that, for any event E, P(Ē) =", ["1 − P(E)", "P(E) − 1", "1 / P(E)", "P(S) + P(E)"]],
+ ["K", "For any two events E and F, P(E ∪ F) =", ["P(E) + P(F)", "P(E) · P(F)", "P(E) + P(F) + P(E ∩ F)", "P(E) + P(F) − P(E ∩ F)"]],
+ ["K", "Two events E and F are mutually exclusive when:", ["E ∪ F = S", "P(E) = P(F)", "P(E ∩ F) = P(E) · P(F)", "E ∩ F = ∅"]],
+ ["K", "If E and F are mutually exclusive, then P(E ∪ F) =", ["P(E) + P(F) − 1", "P(E) · P(F)", "P(E) + P(F)", "0"]],
+ ["K", "For any event E, P(E) + P(Ē) =", ["0", "P(S) − 1", "2", "1"]],
+ ["C", "Why is P(E ∩ F) subtracted in the formula for P(E ∪ F)?", ["To make the answer smaller than 1/2", "Outcomes in both E and F would otherwise be counted twice", "Because E and F are always mutually exclusive", "Because P(E ∩ F) is always 1"]],
+ ["C", "Why do “at least one” problems usually use the complement?", ["The complement, “none,” is a single case that is easy to count", "The complement is always 1/2", "“At least one” events are always impossible", "The complement rule only works for coins"]],
+ ["C", "One card is drawn. Which pair of events is mutually exclusive?", ["“A king” and “a heart”", "“A red card” and “a face card”", "“An ace” and “a black card”", "“A heart” and “a spade”"]],
+ ["C", "Why are “drawing a king” and “drawing a heart” NOT mutually exclusive?", ["The king of hearts belongs to both events", "There are more hearts than kings", "Their probabilities are different", "A king can never be a heart"]],
+ ["C", "Which statement about an event E and its complement Ē is true?", ["They always have equal probability", "They are mutually exclusive, and together they make up the whole sample space", "They can both happen on the same trial", "P(E ∩ Ē) = P(E) · P(Ē)"]],
+ ["A", "One fair die is tossed. What is the probability of NOT getting a 6?", ["1/6", "5/6", "1/2", "6/5"]],
+ ["A", "One card is drawn from a standard deck. What is the probability that it is a king or a heart?", ["4/13", "17/52", "1/52", "1/4"]],
+ ["A", "A fair coin is tossed 4 times. What is the probability of getting at least one head?", ["1/16", "1/2", "3/4", "15/16"]],
+ ["A", "Two fair dice are tossed. What is the probability that the sum is 7 or 11?", ["1/6", "1/18", "7/36", "2/9"]],
+ ["A", "One card is drawn. What is the probability that it is red or a face card?", ["19/26", "3/26", "8/13", "1/2"]],
+ ["N", "Two fair dice are tossed. What is the probability that at least one die shows a 6?", ["11/36", "1/3", "1/36", "25/36"]],
+ ["N", "Two fair dice are tossed. What is the probability of rolling doubles or a sum of at least 10?", ["1/3", "1/6", "5/18", "2/9"]],
+ ["N", "Which expression gives the probability that a 5-card hand contains at least one ace?", ["C(4, 1) / C(52, 5)", "1 − C(48, 5) / C(52, 5) ≈ 0.341", "5 · (4/52) ≈ 0.385", "C(48, 5) / C(52, 5) ≈ 0.659"]],
+ ["N", "A student computes P(at least one head in 3 tosses) = 1/2 + 1/2 + 1/2 = 3/2. Which explanation and correction is right?", ["The answer is 3/2 because each toss is independent", "The answer is 1/8 because all three must be heads", "The events overlap, so they cannot simply be added (and no probability exceeds 1); the answer is 1 − 1/8 = 7/8", "The answer is 1/2 because only the first toss matters"]],
+ ["N", "In a 6-of-49 lotto (13,983,816 possible tickets), you buy 10 DIFFERENT tickets. Why can you add the probabilities, and what is P(win)?", ["The tickets are independent, so P = (1/13,983,816)¹⁰", "Adding is never allowed, so P = 1/13,983,816", "Different tickets are mutually exclusive winners, so P = 10/13,983,816", "Each ticket raises the odds by 1/49, so P = 10/49"]],
+ ["K", "For events E and F with P(F) > 0, the conditional probability of E given F is:", ["P(E | F) = P(E ∩ F) / P(E)", "P(E | F) = P(E) / P(F)", "P(E | F) = P(E) · P(F)", "P(E | F) = P(E ∩ F) / P(F)"]],
+ ["K", "Events E and F are independent if and only if:", ["P(E ∩ F) = 0", "P(E ∪ F) = P(E) + P(F)", "P(E ∩ F) = P(E) · P(F)", "P(E) = P(F)"]],
+ ["K", "The notation P(E | F) is read as:", ["“The probability of E given F”", "“The probability of E or F”", "“The probability of E divided by F”", "“The probability of E and not F”"]],
+ ["K", "The multiplication rule states that P(E ∩ F) =", ["P(E) + P(F | E)", "P(E | F) / P(F)", "P(E) · P(F) for any events E and F", "P(F) · P(E | F)"]],
+ ["K", "Bayes’ theorem gives P(F | E) as:", ["P(E | F) · P(F) / P(E)", "P(E | F) · P(E) / P(F)", "P(E ∩ F) · P(F)", "P(E | F) + P(F)"]],
+ ["C", "When we compute P(E | F), what happens to the sample space?", ["It is reduced to the outcomes in E", "It is doubled", "It does not change", "It is reduced to the outcomes in F"]],
+ ["C", "Two cards are drawn one after another WITHOUT replacement. Why are the two draws dependent?", ["Cards are always independent", "Both cards must be the same suit", "The deck is shuffled between draws", "The first card removed changes the deck for the second draw"]],
+ ["C", "If E and F are independent and P(F) > 0, then P(E | F) =", ["P(F)", "P(E)", "0", "1"]],
+ ["C", "One card is drawn. Which statement about K = “king” and F = “face card” is correct?", ["P(K | F) = P(F | K) = 1/3", "P(K | F) = P(F | K) = 1", "P(K | F) = 1/3 but P(F | K) = 1, so P(E | F) and P(F | E) are usually different", "P(K | F) = 1/13 and P(F | K) = 3/13"]],
+ ["C", "E and F are mutually exclusive, and both have positive probability. Are they independent?", ["Yes, mutually exclusive events are always independent", "Yes, because P(E ∩ F) = 0 = P(E) · P(F)", "No: P(E | F) = 0, which does not equal P(E)", "It depends on whether the experiment uses coins or cards"]],
+ ["A", "One fair die is tossed, and you are told the result is even. What is the probability that it is a 6?", ["1/3", "1/6", "1/2", "2/3"]],
+ ["A", "Two cards are drawn without replacement. What is the probability that both are hearts?", ["1/16", "1/4", "13/51", "1/17"]],
+ ["A", "A fair coin is tossed 3 times. Given that the first toss is heads, what is the probability that all three tosses are heads?", ["1/8", "1/4", "1/2", "1/3"]],
+ ["A", "Two fair dice are tossed, and the sum is 8. What is the probability that both dice show even numbers?", ["1/4", "5/36", "3/5", "1/3"]],
+ ["A", "A card drawn from the deck is a face card. What is the probability that it is a king?", ["1/3", "1/13", "1/4", "4/52"]],
+ ["N", "Two fair dice are tossed. Given that at least one die shows a 6, what is the probability that the sum is 10?", ["1/12", "2/11", "1/6", "3/11"]],
+ ["N", "Two fair coins are tossed. Given that at least one is heads, what is the probability that both are heads?", ["1/2", "1/3", "1/4", "2/3"]],
+ ["N", "Two fair dice are tossed. Are A = “the first die is 3” and B = “the sum is 7” independent?", ["No, because the sum depends on the first die", "No, because P(A ∩ B) = 0", "Yes, because A and B are mutually exclusive", "Yes, because P(A ∩ B) = 1/36 = P(A) · P(B)"]],
+ ["N", "A bag holds a fair coin and a two-headed coin. One coin is chosen at random and tossed, and it shows heads. What is the probability that it is the two-headed coin?", ["2/3", "1/2", "3/4", "1/3"]],
+ ["N", "Two cards are drawn at the same time. Given that at least one is a king, what is the probability that both are kings?", ["1/221", "1/33", "1/13", "3/51"]]
+];
+/* Scrambled answer data: [code, reversed explanation] */
+var A = [
+ [0, ".semoctuo elbissop fo rebmun eht yb dedivid semoctuo elbarovaf fo rebmuN"],
+ [2, ".)niatrec( 1 ot )elbissopmi( 0 morf egnar seitilibaborP"],
+ [0, ".8 = 2 × 2 × 2"],
+ [0, ".semoctuo deredro 63 = 6 × 6"],
+ [2, ".snoitanibmoc esu os ,dnah a ni rettam ton seod redrO"],
+ [3, ".0 ytilibaborp sah semoctuo elbarovaf on htiw tneve nA"],
+ [1, ".tnavelerri si redro ;sdrac fo tes a si dnah A"],
+ [0, ".2/1 = 6/3 era htoB"],
+ [2, ".yromem on sah nioc eht ;tnednepedni era sessot nioC"],
+ [1, ".63/1 = )2(P dna 63/6 = )7(P"],
+ [1, ".3/1 = 6/2 :6 ,5 semoctuO"],
+ [3, ".8/3 = ³2/)2 ,3(C :HHT ,HTH ,THH"],
+ [1, ".63/5 :)2,6( ,)3,5( ,)4,4( ,)5,3( ,)6,2("],
+ [3, ".25/3 :sdrac ecaf era straeh eerhT"],
+ [3, ".sniw eno ;stekcit elbissop 618,389,31 = )6 ,94(C"],
+ [0, ".122/1 = 6231/6 = )2 ,25(C/)2 ,4(C"],
+ [2, ".833,102,292 = 62 × 315,832,11 = 62 × )5 ,96(C"],
+ [1, ".069,895,2/8415 :sdrac 31 sti fo 5 neht ,)syaw 4( tius eht esoohC"],
+ [2, ".61/5 = 23/01 = ⁵2/)3 ,5(C"],
+ [2, ".11 evig )5,6( dna )6,5( .ton era smus 11 eht ;ylekil yllauqe era semoctuo deredro 63 ehT"],
+ [0, ".ecaps elpmas eht pu ekam rehtegot Ē dna E"],
+ [0, ".stneve owt rof noisulcxe–noisulcnI"],
+ [1, ".emit emas eht ta neppah tonnac yehT"],
+ [1, ".detcartbus si gnihton os ,0 = )F ∩ E(P"],
+ [3, ".S revoc dna evisulcxe yllautum era Ē dna E"],
+ [2, ".)F(P dna )E(P htob ni dedulcni si palrevo ehT"],
+ [2, ".eno sah ”enon“ ;sesac ynam sah ”eno tsael tA“"],
+ [2, ".edaps a dna traeh a htob eb tonnac drac elgnis A"],
+ [0, ".emoctuo na erahs stneve ehT"],
+ [2, ".meht fo eno yltcaxe ni si emoctuo yrevE"],
+ [3, ".6/5 = 6/1 − 1"],
+ [3, ".31/4 = 25/61 = 25/1 − 25/31 + 25/4"],
+ [3, ".61/51 = 61/1 − 1 = )sdaeh on(P − 1"],
+ [0, ".9/2 = 63/8 = 63/2 + 63/6 :evisulcxe yllautuM"],
+ [0, ".31/8 = 25/23 = 25/6 − 25/21 + 25/62"],
+ [3, ".eciwt )6 ,6( stnuoc 6/1 + 6/1 gniddA .63/11 = ²)6/5( − 1"],
+ [2, ".81/5 = 63/01 = 2 ,)6,6( dna )5,5( ,htob − 6 01 ≥ mus + 6 selbuoD"],
+ [2, ".seca-non 84 eht morf sdrac 5 lla esoohc :”seca on“ fo tnemelpmoC"],
+ [0, ".8/7 = ³)2/1( − 1 :tnemelpmoc eht esU"],
+ [1, ".palrevo ton od stneve eht :niw nac tekcit eno tsom ta os ,nward si noitanibmoc eno ylnO"],
+ [3, ".sneppah osla E erehw F fo trap eht ekat neht ,F ot tcirtseR"],
+ [3, ".ecnednepedni fo noitinifeD"],
+ [2, "”.nevig“ snaem rab ehT"],
+ [2, ".ytilibaborp lanoitidnoc fo noitinifed degnarraeR"],
+ [0, ".noitidnoc eht ”sesrever“ tI"],
+ [0, ".ecaps elpmas wen eht semoceb F"],
+ [1, ".drac tsrif eht no sdneped pu-ekam rieht dna ,tfel sdrac 15 era erehT"],
+ [0, ".E fo ytilibaborp eht egnahc ton seod deneppah F gniwonK"],
+ [2, ".sgnik era sdrac ecaf 21 eht fo 4 ylno tub ,drac ecaf a si gnik yrevE"],
+ [3, ".E tuoba noitamrofni sevig F os ,tonnac E ,sneppah F fI"],
+ [2, ".3/1 :}6 ,4 ,2{ si ecaps elpmas wen ehT"],
+ [2, ".71/1 = 2562/651 = )15/21()25/31("],
+ [1, ".4/1 :sdaeh eb htob tsum owt rehto eht ,tsrif H neviG"],
+ [3, ".neve htob era 5 eseht fo 3 ;)2,6( ,)3,5( ,)4,4( ,)5,3( ,)6,2( :8 muS"],
+ [2, ".sdrac ecaf 21 fo tuo sgnik 4"],
+ [0, ".11/2 :01 ot mus )4,6( dna )6,4( ;6 a evah semoctuo 11"],
+ [1, ".2/1 ton ,3/1 :}HT ,TH ,HH{ ecaps decudeR"],
+ [0, ".htob ni si )4 ,3( ylno dna ,6/1 = )B(P ,6/1 = )A(P"],
+ [2, ".3/2 = )4/3(/)2/1( = )2/1 · 2/1 + 1 · 2/1( / )1 · 2/1( :seyaB"],
+ [0, ".33/1 = 891/6 ;6231/891 = )2,25(C/)2,84(C − 1 = )eno tsael ta(P ;6231/6 = )htob(P"]
+];
+var N = Q.length, L = "abcd";
+var LEVEL = {K: "Knowledge", C: "Comprehension", A: "Application", N: "Analysis"};
+var PARTS = ["Part I: Probability of an Event", "Part II: Unions and Complements of Events", "Part III: Conditional Probability"];
+var DATA = A.map(function(x, i){ return {a: ((x[0] - i) % 4 + 4) % 4, w: x[1].split("").reverse().join("")}; });
+var $ = function(s, r){ return (r || document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+function esc(s){ return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+var html = "";
+Q.forEach(function(q, i){
+  if (i % 20 === 0) html += '<h2 class="part" id="part' + (i / 20 + 1) + '">' + PARTS[i / 20] + " <span>(Questions " + (i + 1) + "&ndash;" + (i + 20) + ")</span></h2>";
+  html += '<fieldset class="q" id="q' + i + '" data-i="' + i + '">' +
+    '<legend><span class="qn">' + (i + 1) + '</span><span class="stem">' + esc(q[1]) + "</span></legend>" +
+    '<span class="lvl">' + LEVEL[q[0]] + "</span>" +
+    '<div class="opts">' + q[2].map(function(o, k){
+      return '<label class="opt"><input type="radio" name="q' + i + '" value="' + k + '"><span class="let">(' + L[k] + ")</span> <span>" + esc(o) + "</span></label>";
+    }).join("") + "</div>" +
+    '<div class="qfoot"><button type="button" class="btn check" disabled>Check answer</button><span class="mark" aria-hidden="true"></span></div>' +
+    '<div class="fb" aria-live="polite" hidden></div></fieldset>';
+});
+$("#quiz").innerHTML = html;
+var qs = $$("fieldset.q");
+var mode = "practice", submitted = false, checked = {};
+
+function chosen(i){ var r = $("input[name=q" + i + "]:checked"); return r ? +r.value : -1; }
+function answeredCount(){ var n = 0; for (var i = 0; i < N; i++) if (chosen(i) >= 0) n++; return n; }
+
+function setIntro(){
+  $("#intro").innerHTML = mode === "practice"
+    ? "<p><b>Practice mode.</b> Choose an answer, then press <b>Check answer</b> to see whether you are right, the correct answer and a short explanation. Practice as often as you like; nothing is graded.</p>"
+    : "<p><b>Test mode.</b> Answer every question, then press <b>Submit quiz</b> at the bottom. You will see how many you got right and wrong and which question numbers were correct, wrong or unanswered. Answers are revealed only after you submit.</p>";
+}
+
+function updateStatus(){
+  var a = answeredCount();
+  if (mode === "practice"){
+    var c = 0, ok = 0;
+    for (var k in checked){ c++; if (checked[k]) ok++; }
+    $("#status").innerHTML = "Answered <b>" + a + "</b> / " + N + " &middot; Checked <b>" + c + "</b> &middot; Correct <b>" + ok + "</b>";
+  } else {
+    $("#status").innerHTML = submitted ? "Submitted" : "Answered <b>" + a + "</b> / " + N;
+  }
+}
+
+function clearMarks(q){
+  q.classList.remove("right", "wrong", "skipped", "locked");
+  $$(".opt", q).forEach(function(o){ o.classList.remove("is-correct", "is-wrong"); });
+  $$("input", q).forEach(function(r){ r.disabled = false; });
+  var fb = $(".fb", q); fb.hidden = true; fb.innerHTML = "";
+  $(".mark", q).textContent = "";
+}
+
+function reveal(q, i, lock){
+  var ans = DATA[i].a, pick = chosen(i), opts = $$(".opt", q), fb = $(".fb", q), m = $(".mark", q);
+  opts[ans].classList.add("is-correct");
+  if (pick >= 0 && pick !== ans) opts[pick].classList.add("is-wrong");
+  var cls, head;
+  if (pick === ans){ cls = "right"; head = '<b class="good">Correct!</b> '; m.textContent = "✓ Correct"; m.style.color = "var(--ok)"; }
+  else if (pick < 0){ cls = "skipped"; head = '<b class="skip">Not answered.</b> The correct answer is (' + L[ans] + "). "; m.textContent = "– Unanswered"; m.style.color = "var(--skip)"; }
+  else { cls = "wrong"; head = '<b class="bad">Incorrect.</b> You chose (' + L[pick] + "); the correct answer is (" + L[ans] + "). "; m.textContent = "✗ Incorrect"; m.style.color = "var(--user-accent)"; }
+  q.classList.add(cls);
+  fb.innerHTML = head + esc(DATA[i].w);
+  fb.hidden = false;
+  if (lock){ q.classList.add("locked"); $$("input", q).forEach(function(r){ r.disabled = true; }); }
+  return cls;
+}
+
+/* ---- practice: per-question check ---- */
+qs.forEach(function(q){
+  var i = +q.dataset.i, btn = $(".check", q);
+  $$("input", q).forEach(function(r){
+    r.addEventListener("change", function(){
+      if (mode === "practice" && !(i in checked)) btn.disabled = false;
+      updateStatus();
+    });
+  });
+  btn.addEventListener("click", function(){
+    if (chosen(i) < 0) return;
+    checked[i] = reveal(q, i, true) === "right";
+    btn.disabled = true;
+    updateStatus();
+  });
+});
+
+/* ---- test: submit and score ---- */
+function submitTest(){
+  var un = N - answeredCount();
+  if (un > 0 && !confirm("You have " + un + " unanswered question" + (un === 1 ? "" : "s") + ". Unanswered questions are scored as wrong. Submit anyway?")) return;
+  submitted = true;
+  var ok = [], bad = [], skip = [], part = [[0,0],[0,0],[0,0]];
+  qs.forEach(function(q){
+    var i = +q.dataset.i, r = reveal(q, i, true);
+    (r === "right" ? ok : r === "wrong" ? bad : skip).push(i + 1);
+    part[Math.floor(i / 20)][0] += r === "right" ? 1 : 0; part[Math.floor(i / 20)][1]++;
+  });
+  var wrongTotal = bad.length + skip.length, pct = Math.round(ok.length / N * 100);
+  var grid = "";
+  for (var i = 0; i < N; i++){
+    var c = ok.indexOf(i + 1) >= 0 ? "ok" : bad.indexOf(i + 1) >= 0 ? "bad" : "skip";
+    var label = c === "ok" ? "correct" : c === "bad" ? "wrong" : "unanswered";
+    grid += '<a href="#q' + i + '" class="' + c + '" title="Question ' + (i + 1) + ": " + label + '" aria-label="Question ' + (i + 1) + ", " + label + '">' + (i + 1) + "</a>";
+  }
+  var names = ["Part I: Probability of an event", "Part II: Unions and complements", "Part III: Conditional probability"];
+  var rows = part.map(function(p, k){ return "<tr><td>" + names[k] + "</td><td>" + p[0] + " / " + p[1] + "</td></tr>"; }).join("");
+  var R = $("#results");
+  R.innerHTML = "<h2>Your results</h2>" +
+    '<div class="score"><div class="s-pct"><b>' + pct + "%</b>Score</div>" +
+    '<div class="s-ok"><b>' + ok.length + "</b>Correct</div>" +
+    '<div class="s-bad"><b>' + wrongTotal + "</b>Wrong" + (skip.length ? " (incl. " + skip.length + " unanswered)" : "") + "</div></div>" +
+    '<p class="legend">Green = correct &middot; Red = wrong &middot; Gold = unanswered. Select a number to jump to that question and see the correct answer.</p>' +
+    '<div class="grid">' + grid + "</div>" +
+    '<div class="lists"><p><b>Correct (' + ok.length + "):</b> " + (ok.join(", ") || "none") + "</p>" +
+    "<p><b>Wrong (" + bad.length + "):</b> " + (bad.join(", ") || "none") + "</p>" +
+    (skip.length ? "<p><b>Unanswered (" + skip.length + "):</b> " + skip.join(", ") + "</p>" : "") + "</div>" +
+    '<table class="partscore"><tr><th>Part</th><th>Correct</th></tr>' + rows + "</table>" +
+    '<button type="button" class="btn primary" id="retake">Retake test</button>';
+  R.hidden = false;
+  $("#retake").addEventListener("click", resetAll);
+  $("#submit").disabled = true;
+  updateStatus();
+  R.focus();
+  window.scrollTo({top: R.offsetTop - 80});
+}
+
+function resetAll(){
+  submitted = false; checked = {};
+  $("#quiz").reset();
+  qs.forEach(function(q){ clearMarks(q); $(".check", q).disabled = true; });
+  $("#results").hidden = true; $("#results").innerHTML = "";
+  $("#submit").disabled = false;
+  updateStatus();
+  window.scrollTo({top: 0});
+}
+
+function setMode(m){
+  if (m === mode) return;
+  var dirty = answeredCount() > 0;
+  if (dirty && !confirm("Switching modes clears your current answers. Continue?")) return;
+  mode = m;
+  document.body.className = m;
+  $("#mPractice").setAttribute("aria-pressed", m === "practice");
+  $("#mTest").setAttribute("aria-pressed", m === "test");
+  $("#resetPractice").parentNode.hidden = m !== "practice";
+  setIntro();
+  resetAll();
+}
+
+$("#mPractice").addEventListener("click", function(){ setMode("practice"); });
+$("#mTest").addEventListener("click", function(){ setMode("test"); });
+$("#submit").addEventListener("click", submitTest);
+$("#resetTest").addEventListener("click", function(){ if (answeredCount() === 0 || confirm("Clear all answers and start over?")) resetAll(); });
+$("#resetPractice").addEventListener("click", function(){ if (answeredCount() === 0 || confirm("Clear all answers?")) resetAll(); });
+setIntro();
+updateStatus();
+})();
+</script>
+</body>
+</html>
